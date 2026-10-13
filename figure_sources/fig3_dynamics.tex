@@ -1,0 +1,41 @@
+% Expected update of p in the two-outcome model (Fig. 3; formerly Fig. 1b).
+% Data: fig1_field.dat, written by analysis/theory.py.
+\documentclass[10pt,border=0.5pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{times}\usepackage{textcomp}
+\usepackage{amsmath,amssymb,pifont}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds}
+\input{colors.tex}
+\begin{document}
+\begin{tikzpicture}[font=\scriptsize, text=cInk]
+\begin{axis}[
+  width=6.38cm, height=2.75cm, scale only axis,
+  xmin=0, xmax=1, ymin=-0.078, ymax=0.135,
+  xtick={0,0.25,0.5,0.75,1}, ytick={-0.05,0,0.05,0.1}, yticklabels={\textminus0.05,0,0.05,0.10},
+  /pgf/number format/assume math mode=true,
+  yticklabel style={/pgf/number format/fixed, /pgf/number format/precision=2},
+  xticklabel style={/pgf/number format/fixed},
+  tick label style={font=\scriptsize, text=cMuted},
+  xlabel={probability $p$ of the correct answer}, ylabel={$\dot p\,/\,\eta$},
+  xlabel style={font=\scriptsize, yshift=3pt}, ylabel style={font=\scriptsize, at={(axis description cs:-0.138,0.5)}, anchor=center},
+  axis line style={draw=cRule}, tick style={draw=cRule}, tick align=outside,
+  major tick length=2pt,
+  major grid style={draw=cRule!50, line width=0.3pt}, ymajorgrids,
+  clip=false, axis on top,
+  legend cell align=left, legend columns=2,
+  legend style={font=\scriptsize, draw=none, fill=none, inner sep=0pt, row sep=-1pt, /tikz/every even column/.append style={column sep=8pt}, at={(0.5,1.03)}, anchor=south},
+  legend image post style={xscale=0.75},
+]
+\fill[cWrong!8] (axis cs:0,-0.078) rectangle (axis cs:0.5,0);
+\addplot[draw=cMuted, line width=0.5pt, forget plot] coordinates {(0,0) (1,0)};
+\addplot[cMuted, densely dashed, line width=0.8pt] table[x=p, y=gt] {fig1_field.dat};
+\addplot[cWrong, line width=1.0pt] table[x=p, y=maj] {fig1_field.dat};
+\addplot[cInv, densely dashdotted, line width=1.0pt] table[x=p, y=peer] {fig1_field.dat};
+\addplot[cFwd, line width=1.5pt] table[x=p, y=given] {fig1_field.dat};
+\legend{ground-truth reward, own majority vote, stronger peer's vote, GivenRL}
+\end{axis}
+\end{tikzpicture}
+\end{document}

@@ -47,7 +47,7 @@
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Kmax}{K_{\max}}
 
-\title{Every Question Carries Its Own Answer Key:\\Label-Free Reinforcement Learning from Verifiable Givens}
+\title{GivenRL: Label-Free Reasoning through\\Answer-Conditioned Recovery}
 
 \author{Anonymous ACL submission}
 
@@ -55,7 +55,7 @@
 \maketitle
 
 \begin{abstract}
-Label-free reinforcement learning trains reasoning models on problems without reference answers. Current methods reward agreement: with the model's majority vote, across paraphrases of the question, with a peer model, or with a verifier trained on votes. In a two-outcome model of GRPO training, we show that every reward of this kind keeps the all-wrong state stable, so a model that is confidently wrong on a problem is trained to stay wrong. We draw the signal from text the model did not write, namely the quantities the problem gives. For a candidate answer, we hide one given, state the candidate as a fact, and ask the same policy to recover the hidden value, which is an exact label. Recovery succeeds more often when the stated answer is correct. \method rewards forward answers by their recovery rate and trains inverse solving on answers that pass a consistency check against a known-wrong control. In the two-outcome model, the correct answer becomes the only stable state of training whenever the recovery gap is positive. On Qwen3.5-4B/9B-Base and Olmo-3-7B trained on unlabeled DAPO-Math-17k, \method exceeds the strongest label-free baseline by 1.4 to 2.0 points on an eight-benchmark math average and comes within 1.0 point of ground-truth GRPO.It fixes 36\% of the problems on which the base model is confidently wrong, against 9\% for TTRL.
+Label-free reinforcement learning trains reasoning models on problems without reference answers. Current methods reward agreement: with the model's majority vote, across paraphrases of the question, with a peer model, or with a verifier trained on votes. In a two-outcome model of GRPO training, we show that every reward of this kind keeps the all-wrong state stable, so a model that is confidently wrong on a problem is trained to stay wrong. We draw the signal from text the model did not write, namely the quantities the problem gives. For a candidate answer, we hide one given, state the candidate as a fact, and ask the same policy to recover the hidden value, which is an exact label. This answer-conditioned recovery succeeds more often when the stated answer is correct. \method rewards forward answers by their recovery rate and trains inverse solving on answers that pass a consistency check against a known-wrong control. In the two-outcome model, the correct answer becomes the only stable state of training whenever the recovery gap is positive. On Qwen3.5-4B/9B-Base and Olmo-3-7B trained on unlabeled DAPO-Math-17k, \method exceeds the strongest label-free baseline by 1.4 to 2.0 points on an eight-benchmark math average and comes within 1.0 point of ground-truth GRPO. It fixes 36\% of the problems on which the base model is confidently wrong, against 9\% for TTRL.
 \end{abstract}
 
 %=====================================================================
@@ -64,21 +64,21 @@ Label-free reinforcement learning trains reasoning models on problems without re
 
 Reinforcement learning with verifiable rewards (RLVR) is the standard way to improve the reasoning of language models \citep{shao2024deepseekmath,guo2025deepseekr1}, and it needs a reference answer for every training problem. Reference answers are expensive for hard problems and absent for unsolved ones, so a growing line of work trains on unlabeled problems instead \citep{zuo2025ttrl,prabhudesai2025rent,zhao2026intuitor}.
 
-These methods all take their correctness signal from the beliefs of the models being trained. TTRL rewards agreement with the policy's majority vote \citep{zuo2025ttrl}. Co-rewarding and Self-Harmony reward agreement across paraphrases \citep{zhang2026corewarding,wang2026selfharmony}, Co-RL rewards agreement with an independently trained peer \citep{yang2026corl}, and CoVerRL trains a verifier on majority votes \citep{pan2026coverrl}. Each step reduces correlated errors; none adds information the models lack. When the majority answer is wrong, the reward pushes the policy toward it. This is the reinforcement-learning form of confirmation bias in self-training \citep{arazo2020pseudo}, which \citet{pan2026coverrl} call the consensus trap. We show that the trap is structural. In a two-outcome model of GRPO, any reward whose ranking of answers is decided by the votes of models that are all wrong keeps the all-wrong state stable (Section~\ref{sec:trap}). Better views move the boundary of the wrong basin and leave the basin in place (Figure~\ref{fig:teaser}b). Qwen3.5-4B-Base is confidently wrong on 14\% of DAPO-Math-17k problems, and TTRL fixes 9\% of them.
+These methods all take their correctness signal from the beliefs of the models being trained. TTRL rewards agreement with the policy's majority vote \citep{zuo2025ttrl}. Co-rewarding and Self-Harmony reward agreement across paraphrases \citep{zhang2026corewarding,wang2026selfharmony}, Co-RL rewards agreement with an independently trained peer \citep{yang2026corl}, and CoVerRL trains a verifier on majority votes \citep{pan2026coverrl}. Each step reduces correlated errors; none adds information the models lack. When the majority answer is wrong, the reward pushes the policy toward it (Figure~\ref{fig:teaser}b). This is the reinforcement-learning form of confirmation bias in self-training \citep{arazo2020pseudo}, which \citet{pan2026coverrl} call the consensus trap. We show that the trap is structural. In a two-outcome model of GRPO, any reward whose ranking of answers is decided by the votes of models that are all wrong keeps the all-wrong state stable (Section~\ref{sec:trap}). Better views move the boundary of the wrong basin and leave the basin in place (Figure~\ref{fig:dynamics}). Qwen3.5-4B-Base is confidently wrong on 14\% of DAPO-Math-17k problems, and TTRL fixes 9\% of them.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/fig1_teaser.pdf}
-  \caption{\textbf{(a)}~An inverse problem hides one given, states a candidate answer as a fact, and asks for the hidden value. The correct change (\$29) gives back the price \$3; the wrong change (\$23) gives $27/7\approx3.86$. \textbf{(b)}~Expected update of the probability $p$ of the correct answer in the two-outcome model ($G{=}8$). Rewarding the policy's own majority vote drives every problem with $p<1/2$ to $p=0$ (shaded). A peer that is correct more often ($p+0.15$) moves the boundary to $p=0.36$ and leaves $p=0$ stable. \method's update is the ground-truth update scaled by $\psi=0.87$, evaluated at the pilot recovery rates.}
+  \caption{\textbf{(a)}~A problem states its givens (green) and asks for one quantity (blue). Answer-conditioned recovery writes a candidate answer into the problem as a fact, hides one given and asks for it. The correct change (\$29) gives back the price \$3; the wrong change (\$23) gives $27/7\approx3.86$. The hidden given is an exact label whether or not the candidate is correct. \textbf{(b)}~Agreement-based rewards rank answers by votes. When most rollouts agree on a wrong answer, the correct minority is penalized, and training makes the policy more confident in the wrong answer.}
   \label{fig:teaser}
 \end{figure}
 
-A math problem, however, states several facts and leaves one quantity unknown, and a correct answer lets us recover those facts. In Figure~\ref{fig:teaser}a, Maya buys 7 pens at \$3 each, pays with a \$50 bill, and asks for her change. Write a candidate change into the problem, hide the price, and ask for it: a change of \$29 gives back \$3, and a wrong change of \$23 gives about \$3.86. The hidden price is an exact label because we removed it ourselves. \citet{weng2023selfverification} and \citet{jiang2024fobar} used this forward-backward check to rerank answers at inference time; we use it to produce training signal. On 512 unlabeled DAPO-Math problems, Qwen3.5-4B-Base recovers a masked given 58\% of the time under the correct answer and 21\% under its most frequent wrong answer. On the problems where its majority vote is wrong, the rates are 54\% and 23\%, so the signal survives on the problems where agreement-based rewards point the wrong way.
+A math problem, however, states several facts and leaves one quantity unknown, and a correct answer lets us recover those facts. In Figure~\ref{fig:teaser}a, Maya buys 7 pens at \$3 each, pays with a \$50 bill, and asks for her change. Write a candidate change into the problem, hide the price, and ask for it: a change of \$29 gives back \$3, and a wrong change of \$23 gives about \$3.86. We call this check \emph{answer-conditioned recovery}. The hidden price is an exact label because we removed it ourselves. \citet{weng2023selfverification} and \citet{jiang2024fobar} used this forward-backward check to rerank answers at inference time; we use it to produce training signal. On 512 unlabeled DAPO-Math problems, Qwen3.5-4B-Base recovers a masked given 58\% of the time under the correct answer and 21\% under its most frequent wrong answer. On the problems where its majority vote is wrong, the rates are 54\% and 23\%, so the signal survives on the problems where agreement-based rewards point the wrong way.
 
-\method turns this gap into a reward (Figure~\ref{fig:method}). The policy answers a problem; for each candidate and a few givens, a template builds an inverse problem; the same policy solves it, and the recovery rates score the forward answers. The inverse rollouts carry exact rewards, so they also train the policy, but only for the leading candidate and only after it beats a perturbed, known-wrong answer by a margin. This consistency gate keeps the inverse solver reading the answer it is given. In the two-outcome model, \method's expected update is the ground-truth update scaled by a positive factor whenever recovery favors the correct answer. We call the general setting reinforcement learning with verifiable givens (RLVG). Our contributions are:
+\method turns this gap into a reward (Figure~\ref{fig:method}). The policy answers a problem; for each candidate and a few givens, a template builds an inverse problem; the same policy solves it, and the recovery rates score the forward answers. The inverse rollouts carry exact rewards, so they also train the policy, but only for the leading candidate and only after it beats a perturbed, known-wrong answer by a margin. This consistency gate keeps the inverse solver reading the answer it is given. In the two-outcome model, \method's expected update is the ground-truth update scaled by a positive factor whenever recovery favors the correct answer. Our contributions are:
 \begin{itemize}[leftmargin=*,itemsep=1pt,topsep=2pt]
   \item \textbf{A diagnosis.} Rewards decided by model votes, including cross-view, cross-model and vote-trained verifier rewards, keep the all-wrong state stable (Proposition~\ref{prop:trap}).
-  \item \textbf{A reward source.} RLVG labels answer-conditioned inverse problems with the problem's givens. \method's anchor-scored reward and gated inverse training make the correct answer the unique stable state when the anchor gap is positive (Theorem~\ref{thm:stable}).
+  \item \textbf{A reward source.} Answer-conditioned recovery labels inverse problems with the problem's own givens. \method's anchor-scored reward and gated inverse training make the correct answer the unique stable state when the anchor gap is positive (Theorem~\ref{thm:stable}).
   \item \textbf{Evidence.} On three backbones, eight math and five out-of-domain benchmarks, \method is the strongest label-free method and gains most on confidently wrong problems: it fixes 50\% of those whose givens respond to the answer, against 51\% for ground-truth GRPO.
 \end{itemize}
 
@@ -125,7 +125,7 @@ Self-verification masks a condition and checks whether a candidate answer recove
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig2_method.pdf}
-  \caption{One \method step on the problem of Figure~\ref{fig:teaser}. \ding{172}~The distinct answers of $G$ forward rollouts form the candidate set; a perturbed answer serves as a control that is wrong by construction. \ding{173}~For each candidate and each sampled given, a template builds an inverse problem labeled by the hidden given, and the same policy solves it $M$ times. A given's weight is the range of its recovery rates over the candidates. \ding{174}~The weighted recovery rate is the forward reward. The inverse rollouts of the leading candidate enter the loss with exact rewards only if that candidate beats the control by a margin $m$.}
+  \caption{Overview of \method on one unlabeled problem. \ding{172}~Forward solving: the policy $\pi_\theta$ samples $G$ rollouts, whose most frequent distinct answers form the candidate set $\cA(x)$; a perturbed answer $\atilde$ serves as a control that is wrong by construction. \ding{173}~Inverse solving: for each candidate $a$ and each sampled given $v_j$, a template hides $v_j$ as $z$ and states $a$ as the answer. The same policy solves the inverse problem $B_j(x,a)$ $M$ times, and the fraction of rollouts that return $v_j$ is the recovery rate $\shat_j(a)$. \ding{174}~Training: the weighted recovery rate $S(a)$ rewards every forward rollout that outputs $a$, and the inverse rollouts of the leading candidate $\ahat$ enter the loss with exact rewards only if $\ahat$ beats the control by a margin $m$. Both objectives update the same policy without reference answers.}
   \label{fig:method}
 \end{figure*}
 
@@ -152,7 +152,7 @@ Ground-truth rewards give $\zeta=1$ whenever $0<C<G$; agreement-based rewards se
 If $\zeta$ is decided by the votes of policies whose probabilities of the correct answer all tend to zero with $p$, then $\E[\zeta\sqrt{C(G-C)}]/\E[\sqrt{C(G-C)}]\to-1$, and the all-wrong state is asymptotically stable.
 \end{proposition}
 
-Own votes, votes on paraphrases, votes of a peer and a verifier fit to votes all satisfy the hypothesis at the joint all-wrong state, because every vote there favors $\aminus$. Diversity changes how fast correct votes appear as $p$ grows, which moves the basin boundary (Figure~\ref{fig:teaser}b). Escaping the basin needs a signal whose ranking does not depend on what the models believe.
+Own votes, votes on paraphrases, votes of a peer and a verifier fit to votes all satisfy the hypothesis at the joint all-wrong state, because every vote there favors $\aminus$. Diversity changes how fast correct votes appear as $p$ grows, which moves the basin boundary (Figure~\ref{fig:dynamics}). Escaping the basin needs a signal whose ranking does not depend on what the models believe.
 
 \subsection{Inverse Problems from the Givens}
 \label{sec:inverse}
@@ -189,6 +189,13 @@ The objective is $\mathcal J_{\text{GivenRL}}=\mathcal J_{\text{fwd}}+\lambda\,\
 
 \subsection{Analysis}
 \label{sec:analysis}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig3_dynamics.pdf}
+  \caption{Expected update of the probability $p$ of the correct answer in the two-outcome model ($G{=}8$). Rewarding the policy's own majority vote drives every problem with $p<1/2$ to $p=0$ (shaded). A peer that is correct more often ($p+0.15$) moves the boundary to $p=0.36$ and leaves $p=0$ stable. \method's update is the ground-truth update scaled by $\psi=0.87$, evaluated at the pilot recovery rates.}
+  \label{fig:dynamics}
+\end{figure}
+
 
 In the two-outcome model, each scored given is recovered with probability $\alpha$ under $\astar$ and $\beta$ under $\aminus$, independently across rollouts. Proofs are in Appendix~\ref{app:proofs}.
 
@@ -201,7 +208,7 @@ Let $\psi=P(S(\astar)>S(\aminus))-P(S(\astar)<S(\aminus))$, with dropped groups 
 If $\psi>0$, the state $p=0$ is unstable and $p(t)\to1$ from every $p(0)\in(0,1)$. If $\alpha>\beta$, then $\psi>0$ for uniform weights and for $J=1$.
 \end{theorem}
 
-The update is the ground-truth update scaled by $\psi$ (Figure~\ref{fig:teaser}b), and its sign no longer depends on $p$. For the range weights with $J=2$ and $M=4$, exact enumeration gives $\psi>0.29$ in every cell with $\alpha>\beta$ of a grid with spacing 0.1 over $(\alpha,\beta)$ and three control rates, and $\psi=0.87$ at the pilot rates. Two conditions bound the result. Escape from small $p$ is slow, since $\E[\sqrt{C(G-C)}/G]\approx p\sqrt{G-1}$ gives $\dot p\approx\eta\psi\sqrt{G-1}\,p^2$, so a problem moves only once the correct answer appears among the samples. And the model holds $\alpha$ and $\beta$ fixed while \method trains the inverse solver; Section~\ref{sec:where} measures how both move.
+The update is the ground-truth update scaled by $\psi$ (Figure~\ref{fig:dynamics}), and its sign no longer depends on $p$. For the range weights with $J=2$ and $M=4$, exact enumeration gives $\psi>0.29$ in every cell with $\alpha>\beta$ of a grid with spacing 0.1 over $(\alpha,\beta)$ and three control rates, and $\psi=0.87$ at the pilot rates. Two conditions bound the result. Escape from small $p$ is slow, since $\E[\sqrt{C(G-C)}/G]\approx p\sqrt{G-1}$ gives $\dot p\approx\eta\psi\sqrt{G-1}\,p^2$, so a problem moves only once the correct answer appears among the samples. And the model holds $\alpha$ and $\beta$ fixed while \method trains the inverse solver; Section~\ref{sec:where} measures how both move.
 
 \begin{proposition}[Answer-free givens]
 \label{prop:noise}
@@ -344,7 +351,7 @@ The fix rate on confidently wrong problems rises slowly across baselines, from 9
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/fig3_analysis.pdf}
+  \includegraphics[width=\columnwidth]{figures/fig4_analysis.pdf}
   \caption{\textbf{(a)}~Recovery rates on 512 held-out training problems after training (top row: before training), with the reference answer, the base model's most frequent wrong answer, or a perturbed control written in (projected values). \textbf{(b)}~Probability that the correct answer scores no higher than the wrong one (ties count as errors), computed exactly for uniform weights, against the bound of Proposition~\ref{prop:sign}.}
   \label{fig:analysis}
 \end{figure}
@@ -356,7 +363,7 @@ On 512 held-out training problems, $\alpha$ rises from 0.58 to 0.81 while $\beta
 \section{Conclusion}
 %=====================================================================
 
-Agreement-based rewards keep a wrong answer stable however many views they pool, because every view is a belief of the models being trained. A problem's own givens supply a signal from outside those beliefs. They are known exactly, and the correct answer recovers them more often than a wrong one. \method uses this gap to reward forward answers and, under a consistency gate, to train inverse solving with exact labels in the same policy. Other instances of RLVG change how givens are found and checked while keeping the reward of Section~\ref{sec:reward}: symbolic conditions checked by a computer algebra system, hidden test inputs in code, and physical quantities checked for value and unit.
+Agreement-based rewards keep a wrong answer stable however many views they pool, because every view is a belief of the models being trained. A problem's own givens supply a signal from outside those beliefs. They are known exactly, and the correct answer recovers them more often than a wrong one. \method uses this gap to reward forward answers and, under a consistency gate, to train inverse solving with exact labels in the same policy. Other instances of \method change how givens are found and checked while keeping the reward of Section~\ref{sec:reward}: symbolic conditions checked by a computer algebra system, hidden test inputs in code, and physical quantities checked for value and unit.
 
 \section*{Limitations}
 
@@ -384,6 +391,7 @@ Agreement-based rewards keep a wrong answer stable however many views they pool,
 \section{Proofs}
 \label{app:proofs}
 %=====================================================================
+
 
 \begin{lemma}[Common step]
 \label{lem:common}

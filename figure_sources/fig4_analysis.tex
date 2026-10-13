@@ -95,9 +95,9 @@
 ]
 \draw[cMuted, densely dotted, line width=0.6pt] (axis cs:8,1e-4) -- (axis cs:8,1.2);
 \node[anchor=south, font=\scriptsize, text=cMuted, inner sep=1pt] at (axis cs:8,1.2) {default};
-\addplot[cWrong, densely dashed, line width=0.9pt] table[x=n, y=b1] {fig3_sign.dat};
-\addplot[cWrong, line width=1.1pt, mark=*, mark size=1.1pt] table[x=n, y=e1] {fig3_sign.dat};
-\addplot[cFwd, line width=1.3pt, mark=*, mark size=1.1pt, restrict y to domain=-9.3:1] table[x=n, y=e2] {fig3_sign.dat};
+\addplot[cWrong, densely dashed, line width=0.9pt] table[x=n, y=b1] {fig4_sign.dat};
+\addplot[cWrong, line width=1.1pt, mark=*, mark size=1.1pt] table[x=n, y=e1] {fig4_sign.dat};
+\addplot[cFwd, line width=1.3pt, mark=*, mark size=1.1pt, restrict y to domain=-9.3:1] table[x=n, y=e2] {fig4_sign.dat};
 \node[anchor=west, font=\scriptsize, text=cWrongDark, inner sep=1pt] at (axis cs:17,0.45) {Hoeffding, $\Delta{=}0.37$};
 \node[anchor=west, font=\scriptsize, text=cWrongDark, inner sep=1pt] at (axis cs:15,1.1e-3) {exact, $\Delta{=}0.37$};
 \node[anchor=west, font=\scriptsize, text=cFwdDark, inner sep=1pt] at (axis cs:14.6,2.1e-4) {exact, $\Delta{=}0.62$};
