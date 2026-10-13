@@ -1,0 +1,106 @@
+\documentclass[10pt,border=0.5pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usetikzlibrary{arrows.meta,calc}
+\usepgfplotslibrary{groupplots}
+\input{colors.tex}
+\begin{document}
+\begin{tikzpicture}[font=\scriptsize, text=cInk,
+  ctlm/.style={circle, inner sep=0pt, minimum size=4.2pt, fill=white, draw=cMuted, line width=0.7pt},
+  wrm/.style={circle, inner sep=0pt, minimum size=5pt, fill=cWrong, draw=white, line width=0.5pt},
+  corm/.style={circle, inner sep=0pt, minimum size=5pt, fill=cFwd, draw=white, line width=0.5pt}]
+% ---------------- (a) recovery rates per variant ----------------
+\begin{axis}[
+  name=pa, width=4.55cm, height=3.3cm, scale only axis,
+  xmin=0, xmax=1, ymin=0.45, ymax=6.55,
+  ytick={1,2,3,4,5,6},
+  yticklabels={base (step 0), GivenRL, no inverse term, frozen solver, no gate, all candidates},
+  y dir=reverse,
+  xtick={0,0.25,0.5,0.75,1},
+  xticklabels={0,.25,.50,.75,1},
+  tick label style={font=\scriptsize, text=cInk},
+  xticklabel style={text=cMuted},
+  xlabel={recovery rate of the masked given (end of training)},
+  xlabel style={font=\scriptsize, yshift=4pt},
+  axis line style={draw=cRule}, tick style={draw=none},
+  xmajorgrids, major grid style={draw=cRule!50, line width=0.3pt},
+  axis x line*=bottom, axis y line*=left,
+  clip=false,
+  title={\textbf{(a)} Anchor gap $\Delta=\alpha-\beta$ under each training variant},
+  title style={font=\footnotesize, at={(-0.6,1.0)}, anchor=south west, yshift=1pt},
+]
+\draw[cRule, line width=2.2pt] (axis cs:0.21,1) -- (axis cs:0.58,1);
+\node[ctlm] at (axis cs:0.12,1) {};
+\node[wrm] at (axis cs:0.21,1) {};
+\node[corm] at (axis cs:0.58,1) {};
+\node[anchor=west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,1) {0.37};
+\draw[cRule, line width=2.2pt] (axis cs:0.19,2) -- (axis cs:0.81,2);
+\node[ctlm] at (axis cs:0.09,2) {};
+\node[wrm] at (axis cs:0.19,2) {};
+\node[corm] at (axis cs:0.81,2) {};
+\node[anchor=west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,2) {0.62};
+\draw[cRule, line width=2.2pt] (axis cs:0.23,3) -- (axis cs:0.60,3);
+\node[ctlm] at (axis cs:0.12,3) {};
+\node[wrm] at (axis cs:0.23,3) {};
+\node[corm] at (axis cs:0.60,3) {};
+\node[anchor=west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,3) {0.37};
+\draw[cRule, line width=2.2pt] (axis cs:0.21,4) -- (axis cs:0.58,4);
+\node[ctlm] at (axis cs:0.12,4) {};
+\node[wrm] at (axis cs:0.21,4) {};
+\node[corm] at (axis cs:0.58,4) {};
+\node[anchor=west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,4) {0.37};
+\draw[cRule, line width=2.2pt] (axis cs:0.31,5) -- (axis cs:0.79,5);
+\node[ctlm] at (axis cs:0.13,5) {};
+\node[wrm] at (axis cs:0.31,5) {};
+\node[corm] at (axis cs:0.79,5) {};
+\node[anchor=west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,5) {0.48};
+\draw[cRule, line width=2.2pt] (axis cs:0.63,6) -- (axis cs:0.78,6);
+\node[ctlm] at (axis cs:0.41,6) {};
+\node[wrm] at (axis cs:0.63,6) {};
+\node[corm] at (axis cs:0.78,6) {};
+\node[anchor=west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,6) {0.15};
+\node[anchor=south west, font=\scriptsize, inner sep=0pt] at (axis cs:1.03,0.45) {$\Delta$};
+\draw[cRule, line width=0.4pt] (axis cs:-0.62,2.5) -- (axis cs:1.12,2.5);
+% legend
+\node[anchor=south, inner sep=0pt, font=\scriptsize] at (axis cs:0.5,0.25) {%
+  \tikz[baseline=-0.35ex]\node[circle, inner sep=0pt, minimum size=5pt, fill=cFwd]{};\,correct $\alpha$\quad
+  \tikz[baseline=-0.35ex]\node[circle, inner sep=0pt, minimum size=5pt, fill=cWrong]{};\,top wrong $\beta$\quad
+  \tikz[baseline=-0.35ex]\node[circle, inner sep=0pt, minimum size=4.2pt, fill=white, draw=cMuted, line width=0.7pt]{};\,control $\tilde a$};
+\end{axis}
+
+% ---------------- (b) sign error vs JM ----------------
+\begin{axis}[
+  at={($(pa.south west)+(0,-1.55cm)$)}, anchor=north west,
+  width=4.55cm, height=2.9cm, scale only axis,
+  xmin=1, xmax=33, ymin=1e-4, ymax=1.2,
+  ymode=log,
+  xtick={2,8,16,24,32},
+  ytick={1e-4,1e-3,1e-2,1e-1,1},
+  yticklabels={$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$1$},
+  tick label style={font=\scriptsize, text=cMuted},
+  xlabel={inverse rollouts scored per candidate, $JM$},
+  ylabel={$P(\text{sign error})$},
+  xlabel style={font=\scriptsize, yshift=4pt}, ylabel style={font=\scriptsize, yshift=-2pt},
+  axis line style={draw=cRule}, tick style={draw=cRule}, major tick length=2pt,
+  ymajorgrids, major grid style={draw=cRule!50, line width=0.3pt},
+  axis x line*=bottom, axis y line*=left,
+  clip=false,
+  title={\textbf{(b)} Exact sign error vs.\ the Hoeffding bound},
+  title style={font=\footnotesize, at={(-0.6,1.0)}, anchor=south west, yshift=1pt},
+]
+\draw[cMuted, densely dotted, line width=0.6pt] (axis cs:8,1e-4) -- (axis cs:8,1.2);
+\node[anchor=south, font=\scriptsize, text=cMuted, inner sep=1pt] at (axis cs:8,1.2) {default};
+\addplot[cWrong, densely dashed, line width=0.9pt] table[x=n, y=b1] {fig3_sign.dat};
+\addplot[cWrong, line width=1.1pt, mark=*, mark size=1.1pt] table[x=n, y=e1] {fig3_sign.dat};
+\addplot[cFwd, line width=1.3pt, mark=*, mark size=1.1pt, restrict y to domain=-9.3:1] table[x=n, y=e2] {fig3_sign.dat};
+\node[anchor=west, font=\scriptsize, text=cWrongDark, inner sep=1pt] at (axis cs:17,0.45) {Hoeffding, $\Delta{=}0.37$};
+\node[anchor=west, font=\scriptsize, text=cWrongDark, inner sep=1pt] at (axis cs:15,1.1e-3) {exact, $\Delta{=}0.37$};
+\node[anchor=west, font=\scriptsize, text=cFwdDark, inner sep=1pt] at (axis cs:14.6,2.1e-4) {exact, $\Delta{=}0.62$};
+\end{axis}
+\end{tikzpicture}
+\end{document}

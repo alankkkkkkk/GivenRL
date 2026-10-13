@@ -1,0 +1,16 @@
+\rowcolor{rowours}GivenRL (full) & 37.9 & 36 & 0.62 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Reward}} \\
+\quad Uniform weights $w_j{=}1$ & 37.6 \dlt{-0.3} & 34 & 0.61 \\
+\quad No $\tau$ filter & 37.3 \dlt{-0.6} & 33 & 0.60 \\
+\quad Vote fallback below $\tau$ & 37.3 \dlt{-0.6} & 30 & 0.60 \\
+\quad Top-2 candidates only & 37.1 \dlt{-0.8} & 29 & 0.61 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Inverse}} \\
+\quad No inverse term & 36.4 \dlt{-1.5} & 30 & 0.37 \\
+\quad Frozen inverse solver & 36.1 \dlt{-1.8} & 29 & 0.37 \\
+\quad Margin rule, no control & 37.0 \dlt{-0.9} & 32 & 0.48 \\
+\quad Train all candidates & 35.0 \dlt{-2.9} & 23 & 0.15 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Construction}} \\
+\quad Qwen3.5-27B rewrites & 38.0 \dlt{+0.1} & 36 & 0.63 \\
